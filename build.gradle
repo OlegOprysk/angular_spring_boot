@@ -1,0 +1,67 @@
+group 'com.olegoprysk'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+buildscript {
+    ext {
+        springBootVersion = '1.5.4.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+def angularAppDir ="$projectDir/src/angularApp"
+
+sourceSets {
+    main {
+        resources {
+            srcDirs = ["$angularAppDir/dist", "$projectDir/src/main/resources"]
+        }
+    }
+}
+
+processResources {
+    dependsOn "buildAngular"
+}
+
+task buildAngular(type:Exec) {
+    dependsOn "installAngular"
+    workingDir "$angularAppDir"
+    inputs.dir "$angularAppDir"
+    group = BasePlugin.BUILD_GROUP
+//	outputs.dir "$angularAppDir/dist"
+    if (System.getProperty("os.name").toUpperCase().contains("WINDOWS")){
+        commandLine "ng.cmd", "build"
+    } else {
+        commandLine "ng", "build"
+    }
+}
+
+task installAngular(type:Exec) {
+    workingDir "$angularAppDir"
+    inputs.dir "$angularAppDir"
+    group = BasePlugin.BUILD_GROUP
+//	outputs.dir "$angularAppDir/dist"
+    if (System.getProperty("os.name").toUpperCase().contains("WINDOWS")){
+        commandLine "npm.cmd", "install"
+    } else {
+        commandLine "npm", "install"
+    }
+}
+dependencies {
+    compile('org.springframework.boot:spring-boot-starter-web')
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
